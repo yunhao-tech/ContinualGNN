@@ -28,3 +28,22 @@ If using cuda, set `--cuda`.
 ### Credit
 
 The `origin` directory is a copy of https://github.com/Junshan-Wang/ContinualGNN
+
+### Analysis of code structure
+
+- `extensions`
+  - `detection.py`: compute $\mathcal{I}(\Delta G^t)$
+  - `memory_handler.py`: compute $\mathcal{M}$
+- `handlers`
+  - `data_handler.py`: load data, train-valid split
+  - `model_handler.py`: handle load/save model for `main_sage` use
+  - `stream_data_handler.py`: subclass of data_handler for `main_stream` use.
+- `layers`:
+  - `aggregator.py`: mask \* features
+  - `sage_conv.py`: using concatenation instead of mean aggregator in the paper
+  - `sampler.py`: sample 10 nodes from neighborhood
+- `models`:
+  - `ewc.py`: wrap the ewc loss around gnn model
+  - `graph_sage.py`: GraphSage model
+- `main_sage.py`: seems a test version for plain sage model
+- `main_stream.py`: true final version
