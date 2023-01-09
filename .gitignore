@@ -131,12 +131,5 @@ ui-tests/playwright-report
 .jupyter_ystore.db
 
 # repo specific
-*.pdf
-*.html
-*.zip
-*.data
-*.arff
-# *kafka*
 *.code-workspace*
-
-*origin*
+# *origin*
