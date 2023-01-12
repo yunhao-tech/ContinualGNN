@@ -19,7 +19,7 @@ class SAGE(torch.nn.Module):
 		in_channels: int,
 		hidden_channels: int,
 		out_channels: int,
-		num_layers: int = 2, # number of conv layers, not including the last linear one
+		num_layers: int = 3, #including the last linear one
 	):
 		super().__init__()
 
