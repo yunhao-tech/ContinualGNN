@@ -57,7 +57,7 @@ class GraphSAGE(nn.Module):
 
 
     def _generate_layer_nodes(self, nodes):
-        # layer_nodes stores a list of nodes in each layer
+        # layer_nodes stores a list of nodes in each layer, neighbors are sampled at each layer
         # layer_nodes initialized with input nodes
         layer_nodes = list([nodes])
         layer_mask = list()
