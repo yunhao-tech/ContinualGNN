@@ -15,12 +15,15 @@ class Sampler(object):
         self.adj_lists = adj_lists
 
     def sample_neighbors(self, nodes, num_sample = 10):
+        # sample 10 neighbors from neighborhood
         to_neighs = [self.adj_lists[int(node)] for node in nodes]
         if not num_sample is None:
             samp_neighs = [set(random.sample(to_neigh, num_sample)) if len(to_neigh) >= num_sample else to_neigh for to_neigh in to_neighs]
         else:
             samp_neighs = to_neighs
-        
+        # to_neighs is a list of neighbors (set)
+        # samp_neighs is a list of sub-sampled neighbors (set)
+        # if samp_neighs contains an empty set(i.e neighborhood is empty for some nodes, orphan nodes, then add itself as its neighbor)
         samp_neighs = [samp_neigh | set([nodes[i]]) for i, samp_neigh in enumerate(samp_neighs)]
         unique_neighs = list(set.union(*samp_neighs))
         unique_neighs_2_idxs = {n:i for i,n in enumerate(unique_neighs)}
