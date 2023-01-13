@@ -1,14 +1,15 @@
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import torch
-from torch.nn import Linear, ModuleList
+from torch import Tensor, autograd
+from torch.nn import Linear, ModuleList, CrossEntropyLoss
 import torch.nn.functional as F
+
+import numpy as np
 from tqdm import tqdm
 
 from torch_geometric.loader import NeighborLoader
 from torch_geometric.nn.models import GraphSAGE
-
-from torch import Tensor
 from torch_geometric.typing import Adj
 
 # according to pyG BasicGNN source code https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/basic_gnn.html
@@ -20,7 +21,7 @@ class Model(torch.nn.Module):
 		hidden_channels: int,
 		out_channels: int,
 		num_layers: int = 3, #including the last linear one
-		ewc_type = Literal['ewc','l2'],
+		ewc_type = Optional[Literal['ewc','l2']],
 		ewc_lambda: float = 0,
 	):
 		super().__init__()
@@ -29,6 +30,7 @@ class Model(torch.nn.Module):
 		self.lin = Linear(in_features=hidden_channels, out_features=out_channels)
 		self.ewc_type = ewc_type
 		self.ewc_lambda = ewc_lambda
+		self.xent = CrossEntropyLoss()
 
 	def reset_parameters(self):
 		self.sage.reset_parameters()
@@ -41,8 +43,58 @@ class Model(torch.nn.Module):
 
 	def save(self, path):
 		torch.save(self, path)
-		
-	# seems not necessary for the moment
+	
+	# cross entropy loss
+	def _classification_loss(self, x: Tensor, y_true: Tensor):
+		y_pred = self.forward(x)
+		return self.xent(y_pred, y_true)
+
+	def _consolidation_loss(self):
+			losses = []
+			for param_name, param in self.named_parameters():
+					_buff_param_name = param_name.replace('.', '__')
+					estimated_mean = getattr(self, '{}_estimated_mean'.format(_buff_param_name))
+					estimated_fisher = getattr(self, '{}_estimated_fisher'.format(_buff_param_name))
+					if self.ewc_type == 'l2':
+							losses.append((10e-6 * (param - estimated_mean) ** 2).sum())
+					else:
+							losses.append((estimated_fisher * (param - estimated_mean) ** 2).sum())
+			return 1 * (self.ewc_lambda / 2) * sum(losses)
+
+	def loss(self, x: Tensor, y: Tensor):
+		if self.ewc_type is None:
+			return self._classification_loss(x, y)
+		# cross entropy loss + consolidation loss
+		return self._classification_loss() + self._consolidation_loss()
+
+	def _update_mean_params(self):
+			for param_name, param in self.named_parameters():
+					_buff_param_name = param_name.replace('.', '__')
+					self.register_buffer(_buff_param_name + '_estimated_mean', param.data.clone())
+
+	def _update_fisher_params(self, x: Tensor, y_true: Tensor):
+			log_likelihood = self._classification_loss(x, y_true)
+			grad_log_liklihood = autograd.grad(log_likelihood, self.parameters())
+			_buff_param_names = [param[0].replace('.', '__') for param in self.named_parameters()]
+			for _buff_param_name, param in zip(_buff_param_names, grad_log_liklihood):
+					self.register_buffer(_buff_param_name + '_estimated_fisher', param.data.clone() ** 2)
+
+	# not used, seems for testing
+	def _save_fisher_params(self):
+			for param_name, param in self.named_parameters():
+					_buff_param_name = param_name.replace('.', '__')
+					estimated_mean = getattr(self, '{}_estimated_mean'.format(_buff_param_name))
+					estimated_fisher = np.array(getattr(self, '{}_estimated_fisher'.format(_buff_param_name)))
+					np.savetxt('estimated_mean', estimated_mean)
+					np.savetxt('estimated_fisher', estimated_fisher)
+					print(np.mean(estimated_fisher), np.max(estimated_fisher), np.min(estimated_fisher))
+					break
+
+	def register_ewc_params(self, x: Tensor, y: Tensor):
+			self._update_fisher_params(x, y)
+			self._update_mean_params()
+
+	# for data visualization and evaluation
 	# @torch.no_grad()
 	# def inference(self, loader: NeighborLoader,
 	# 							device: Optional[torch.device] = None,
