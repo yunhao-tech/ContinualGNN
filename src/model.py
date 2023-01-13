@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import torch
 from torch.nn import Linear, ModuleList
@@ -6,44 +6,42 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from torch_geometric.loader import NeighborLoader
-from torch_geometric.nn import SAGEConv
+from torch_geometric.nn.models import GraphSAGE
 
 from torch import Tensor
 from torch_geometric.typing import Adj
 
 # according to pyG BasicGNN source code https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/basic_gnn.html
 # and example https://github.com/pyg-team/pytorch_geometric/blob/master/examples/reddit.py
-class SAGE(torch.nn.Module):
+class Model(torch.nn.Module):
 	def __init__(
 		self,
 		in_channels: int,
 		hidden_channels: int,
 		out_channels: int,
 		num_layers: int = 3, #including the last linear one
+		ewc_type = Literal['ewc','l2'],
+		ewc_lambda: float = 0,
 	):
 		super().__init__()
 
-		self.num_layers = num_layers
-
-		self.convs = ModuleList()
-		self.convs.append(SAGEConv(in_channels, hidden_channels))
-		for _ in range(num_layers - 1):
-			self.convs.append(SAGEConv(hidden_channels, hidden_channels))
-
+		self.sage = GraphSAGE(in_channels=in_channels, hidden_channels=hidden_channels, num_layers=num_layers-1)
 		self.lin = Linear(in_features=hidden_channels, out_features=out_channels)
+		self.ewc_type = ewc_type
+		self.ewc_lambda = ewc_lambda
 
 	def reset_parameters(self):
-		for conv in self.convs:
-			conv.reset_parameters()
+		self.sage.reset_parameters()
 		self.lin.reset_parameters()
 
 	def forward(self, x: Tensor, edge_index: Adj) -> Tensor:
-		for conv in self.convs:
-			x = conv(x, edge_index)
-			x = F.relu(x)
+		x = self.sage(x=x, edge_index=edge_index)
 		x = self.lin(x)
 		return F.log_softmax(x, 1)
 
+	def save(self, path):
+		torch.save(self, path)
+		
 	# seems not necessary for the moment
 	# @torch.no_grad()
 	# def inference(self, loader: NeighborLoader,
