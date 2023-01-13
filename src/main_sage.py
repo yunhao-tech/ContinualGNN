@@ -17,12 +17,12 @@ from handlers.data_handler import DataHandler
 
 parser = argparse.ArgumentParser(description = 'pytorch version of GraphSAGE')
 parser.add_argument('--data', type = str, default = 'cora')
-parser.add_argument('--aggr_func', type = str, default = 'MEAN')
+# parser.add_argument('--aggr_func', type = str, default = 'MEAN') # dead argmument
 parser.add_argument('--num_epochs', type = int, default = 10)
 parser.add_argument('--batch_size', type = int, default = 128)
 parser.add_argument('--seed', type = int, default = 13)
 parser.add_argument('--cuda', action = 'store_true', help = 'use CUDA')
-parser.add_argument('--num_neg_samples', type = int, default = 10)
+parser.add_argument('--num_neg_samples', type = int, default = 10) # dead argument
 parser.add_argument('--lr', type = float, default = 0.1)
 args = parser.parse_args()
 
@@ -35,7 +35,7 @@ if torch.cuda.is_available():
 
 
 if __name__ == "__main__":
-    random.seed(args.seed)
+    # random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 

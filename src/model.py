@@ -1,14 +1,13 @@
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Literal, Optional
 
 import torch
 from torch import Tensor, autograd
-from torch.nn import Linear, ModuleList, CrossEntropyLoss
+from torch.nn import Linear, CrossEntropyLoss
 import torch.nn.functional as F
 
 import numpy as np
 from tqdm import tqdm
 
-from torch_geometric.loader import NeighborLoader
 from torch_geometric.nn.models import GraphSAGE
 from torch_geometric.typing import Adj
 
