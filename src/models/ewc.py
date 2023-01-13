@@ -28,6 +28,7 @@ class EWC(nn.Module):
         for _buff_param_name, param in zip(_buff_param_names, grad_log_liklihood):
             self.register_buffer(_buff_param_name + '_estimated_fisher', param.data.clone() ** 2)
 
+    # not used, seems for testing
     def _save_fisher_params(self):
         for param_name, param in self.model.named_parameters():
             _buff_param_name = param_name.replace('.', '__')

@@ -39,7 +39,7 @@ class GraphSAGE(nn.Module):
         for param in self.parameters():
             nn.init.xavier_uniform_(param)
 
-
+    # should seperate neighbor sampling part from model
     def forward(self, nodes):
         # nodes: node attributes
         layer_nodes, layer_mask = self._generate_layer_nodes(nodes)
@@ -55,7 +55,7 @@ class GraphSAGE(nn.Module):
         preds = self.forward(nodes)
         return self.xent(preds, labels.squeeze())
 
-
+    # neighbor sampling will be taken care in data loading process
     def _generate_layer_nodes(self, nodes):
         # layer_nodes stores a list of nodes in each layer, neighbors are sampled at each layer
         # layer_nodes initialized with input nodes
@@ -70,7 +70,7 @@ class GraphSAGE(nn.Module):
             # Don't quite understand the insert logic here, why put the neighbor nodes in front of the center nodes?
         return layer_nodes, layer_mask
 
-
+    # useful for data visualization
     def get_embeds(self, nodes):
         # can be integrated into forward
         layer_nodes, layer_mask = self._generate_layer_nodes(nodes)
