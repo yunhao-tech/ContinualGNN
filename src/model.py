@@ -95,41 +95,41 @@ class Model(torch.nn.Module):
 			self._update_fisher_params(data)
 			self._update_mean_params()
 
-	# for data visualization and evaluation
-	@torch.no_grad()
-	def inference(self, loader: NeighborLoader,
-								device: Optional[torch.device] = None,
-								progress_bar: bool = False) -> Tensor:
-			r"""Performs layer-wise inference on large-graphs using
-			:class:`~torch_geometric.loader.NeighborLoader`.
-			:class:`~torch_geometric.loader.NeighborLoader` should sample the the
-			full neighborhood for only one layer.
-			This is an efficient way to compute the output embeddings for all
-			nodes in the graph.
-			Only applicable in case :obj:`jk=None` or `jk='last'`.
-			"""
-			assert isinstance(loader, NeighborLoader)
-			assert len(loader.dataset) == loader.data.num_nodes
-			assert len(loader.node_sampler.num_neighbors) == 1
-			assert not self.training
+	# # for data visualization and evaluation
+	# @torch.no_grad()
+	# def inference(self, loader: NeighborLoader,
+	# 							device: Optional[torch.device] = None,
+	# 							progress_bar: bool = False) -> Tensor:
+	# 		r"""Performs layer-wise inference on large-graphs using
+	# 		:class:`~torch_geometric.loader.NeighborLoader`.
+	# 		:class:`~torch_geometric.loader.NeighborLoader` should sample the the
+	# 		full neighborhood for only one layer.
+	# 		This is an efficient way to compute the output embeddings for all
+	# 		nodes in the graph.
+	# 		Only applicable in case :obj:`jk=None` or `jk='last'`.
+	# 		"""
+	# 		assert isinstance(loader, NeighborLoader)
+	# 		assert len(loader.dataset) == loader.data.num_nodes
+	# 		assert len(loader.node_sampler.num_neighbors) == 1
+	# 		assert not self.training
 
-			if progress_bar:
-					pbar = tqdm(total=len(self.num_layers) * len(loader))
-					pbar.set_description('Inference')
+	# 		if progress_bar:
+	# 				pbar = tqdm(total=len(self.num_layers) * len(loader))
+	# 				pbar.set_description('Inference')
 
-			x_all = loader.data.x.cpu() # loader.data.x here is a ndarray instead of torch Tensor
-			loader.data.n_id = torch.arange(x_all.size(0))
+	# 		x_all = loader.data.x.cpu() # loader.data.x here is a ndarray instead of torch Tensor
+	# 		loader.data.n_id = torch.arange(x_all.size(0))
 
-			xs: List[Tensor] = []
-			for batch in loader:
-					x = x_all[batch.n_id].to(device)
-					edge_index = batch.edge_index.to(device)
-					x = self.sage(x, edge_index)[:batch.batch_size]
-					x = self.lin(x)[:batch.batch_size]
-					xs.append(x.cpu())
-					if progress_bar:
-							pbar.update(batch.batch_size)
-			x_all = torch.cat(xs, dim=0)
-			if progress_bar:
-					pbar.close()
-			return x_all
+	# 		xs: List[Tensor] = []
+	# 		for batch in loader:
+	# 				x = x_all[batch.n_id].to(device)
+	# 				edge_index = batch.edge_index.to(device)
+	# 				x = self.sage(x, edge_index)[:batch.batch_size]
+	# 				x = self.lin(x)[:batch.batch_size]
+	# 				xs.append(x.cpu())
+	# 				if progress_bar:
+	# 						pbar.update(batch.batch_size)
+	# 		x_all = torch.cat(xs, dim=0)
+	# 		if progress_bar:
+	# 				pbar.close()
+	# 		return x_all
