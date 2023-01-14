@@ -29,7 +29,6 @@ class Model(torch.nn.Module):
 		self.lin = Linear(in_features=hidden_channels, out_features=out_channels)
 		self.ewc_type = ewc_type
 		self.ewc_lambda = ewc_lambda
-		self.xent = CrossEntropyLoss()
 
 	def reset_parameters(self):
 		self.sage.reset_parameters()
@@ -46,7 +45,7 @@ class Model(torch.nn.Module):
 	# cross entropy loss
 	def _classification_loss(self, x: Tensor, y_true: Tensor):
 		y_pred = self.forward(x)
-		return self.xent(y_pred, y_true)
+		return F.cross_entropy(y_pred, y_true)
 
 	def _consolidation_loss(self):
 			losses = []
