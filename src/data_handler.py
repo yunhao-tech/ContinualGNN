@@ -178,7 +178,9 @@ def generate_whole_graph(
     cur_edges_ranged = torch.tensor([[nodes_ranged[edge[0]],
                                       nodes_ranged[edge[1]]] for edge in all_edges],
                                     dtype=torch.long)
-    cur_graph = Data(x=all_features[viewed_all_nodes], y=all_labels[viewed_all_nodes], 
+    x = torch.tensor(all_features[viewed_all_nodes], dtype=torch.float32)
+    y = torch.tensor(all_labels[viewed_all_nodes], dtype=torch.int64)
+    cur_graph = Data(x=x, y=y, 
                      edge_index=cur_edges_ranged.t().contiguous(), num_nodes=len(viewed_all_nodes))
     cur_graph.validate(raise_on_error=True)
     return cur_graph, valid_nodes

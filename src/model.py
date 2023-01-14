@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 import torch
 from torch import Tensor, autograd
@@ -31,6 +31,7 @@ class Model(torch.nn.Module):
 		self.lin = Linear(in_features=hidden_channels, out_features=out_channels)
 		self.ewc_type = ewc_type
 		self.ewc_lambda = ewc_lambda
+		self.num_layers = num_layers
 
 	def reset_parameters(self):
 		self.sage.reset_parameters()
@@ -113,25 +114,22 @@ class Model(torch.nn.Module):
 			assert not self.training
 
 			if progress_bar:
-					pbar = tqdm(total=len(self.convs) * len(loader))
+					pbar = tqdm(total=len(self.num_layers) * len(loader))
 					pbar.set_description('Inference')
 
-			x_all = loader.data.x.cpu()
+			x_all = loader.data.x.cpu() # loader.data.x here is a ndarray instead of torch Tensor
 			loader.data.n_id = torch.arange(x_all.size(0))
-			for conv in range(self.convs):
-					xs: List[Tensor] = []
-					for batch in loader:
-							x = x_all[batch.n_id].to(device)
-							if hasattr(batch, 'adj_t'):
-									edge_index = batch.adj_t.to(device)
-							else:
-									edge_index = batch.edge_index.to(device)
-							x = conv(x, edge_index)[:batch.batch_size]
-							x = F.relu(x)
-							xs.append(x.cpu())
-							if progress_bar:
-									pbar.update(1)
-					x_all = torch.cat(xs, dim=0)
+
+			xs: List[Tensor] = []
+			for batch in loader:
+					x = x_all[batch.n_id].to(device)
+					edge_index = batch.edge_index.to(device)
+					x = self.sage(x, edge_index)[:batch.batch_size]
+					x = self.lin(x)[:batch.batch_size]
+					xs.append(x.cpu())
+					if progress_bar:
+							pbar.update(batch.batch_size)
+			x_all = torch.cat(xs, dim=0)
 			if progress_bar:
 					pbar.close()
 			return x_all
