@@ -47,8 +47,8 @@ class Model(torch.nn.Module):
 	
 	# cross entropy loss
 	def _classification_loss(self, data:Data) -> Tensor:
-		y_pred = self.forward(data)[:data.batch_size]
-		return F.cross_entropy(y_pred, data.y[:data.batch_size])
+		y_pred = (self.forward(data)[:data.batch_size])[data.train_mask[:data.batch_size]]
+		return F.cross_entropy(y_pred, (data.y[:data.batch_size])[data.train_mask[:data.batch_size]])
 
 	def _consolidation_loss(self) -> Tensor:
 			losses = []
