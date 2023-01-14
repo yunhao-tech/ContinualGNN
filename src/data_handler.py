@@ -1,8 +1,13 @@
+from typing import Tuple
 import numpy as np
 import torch
 from torch_geometric.data import Data
 
-def update_viewed_training_nodes_and_edges(coming_edges: np.ndarray, viewed_training_nodes: list, viewed_training_edges: np.ndarray, valid_all_nodes_list: list) -> (list, np.ndarray):
+def update_viewed_training_nodes_and_edges(
+	coming_edges: np.ndarray,
+	viewed_training_nodes: list,
+	viewed_training_edges: np.ndarray,
+	valid_all_nodes_list: list) -> Tuple[list, np.ndarray]:
     """
     Parameters
     ----------
@@ -52,7 +57,11 @@ def update_viewed_training_nodes_and_edges(coming_edges: np.ndarray, viewed_trai
             updated_viewed_training_edges.append(list(edge))
     return updated_viewed_training_nodes, np.array(updated_viewed_training_edges)
 
-def generate_graph(viewed_training_nodes: list, viewed_training_edges: np.ndarray, all_features: np.ndarray, all_labels: np.ndarray) -> Data:
+def generate_graph(
+	viewed_training_nodes: list,
+	viewed_training_edges: np.ndarray,
+	all_features: np.ndarray,
+	all_labels: np.ndarray) -> Data:
     """
     Parameters
     ----------
@@ -70,7 +79,7 @@ def generate_graph(viewed_training_nodes: list, viewed_training_edges: np.ndarra
                             
     Returns
     ----------
-    graph : of type torch_geometric.data.data.Data
+    graph : of type torch_geometric.data.Data
             constructed by "viewed_training_nodes" and "viewed_training_edges"
     """
     nodes_ranged = {node: number for number, node in enumerate(list(viewed_training_nodes))}
@@ -84,7 +93,10 @@ def generate_graph(viewed_training_nodes: list, viewed_training_edges: np.ndarra
     cur_graph.validate(raise_on_error=True)
     return cur_graph
 
-def update_viewed_all_nodes_and_edges(coming_edges: np.ndarray, viewed_all_nodes: list, viewed_all_edges: np.ndarray) -> (list, np.ndarray):
+def update_viewed_all_nodes_and_edges(
+	coming_edges: np.ndarray,
+	viewed_all_nodes: list,
+	viewed_all_edges: np.ndarray) -> Tuple[list, np.ndarray]:
     """
     Parameters
     ----------
@@ -127,7 +139,12 @@ def update_viewed_all_nodes_and_edges(coming_edges: np.ndarray, viewed_all_nodes
             updated_viewed_all_edges.append(list(edge))
     return updated_viewed_all_nodes, np.array(updated_viewed_all_edges)
 
-def generate_whole_graph(viewed_all_nodes: list, viewed_all_edges: np.ndarray, valid_all_nodes_list: list, all_features: np.ndarray, all_labels: np.ndarray) -> (Data, list):
+def generate_whole_graph(
+	viewed_all_nodes: list,
+	viewed_all_edges: np.ndarray,
+	valid_all_nodes_list: list,
+	all_features: np.ndarray,
+	all_labels: np.ndarray) -> Tuple[Data, list]:
     """
     Parameters
     ----------
@@ -148,7 +165,7 @@ def generate_whole_graph(viewed_all_nodes: list, viewed_all_edges: np.ndarray, v
                             
     Returns
     ----------
-    graph : of type torch_geometric.data.data.Data
+    graph : of type torch_geometric.data.Data
             constructed by "viewed_training_nodes" and "viewed_training_edges"
     
     valid_nodes : 1D list
