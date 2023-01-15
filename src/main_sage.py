@@ -91,6 +91,12 @@ if __name__ == "__main__":
 
     sage.eval()
     val_output = sage.forward(data.valid_nodes)
-    logging.info("Validation Macro F1:" +  str(np.round(f1_score(data.labels[data.valid_nodes], val_output.data.cpu().numpy().argmax(axis=1), average="macro"), 6)))
-    logging.info("Validation Micro F1:" +  str(np.round(f1_score(data.labels[data.valid_nodes], val_output.data.cpu().numpy().argmax(axis=1), average="micro"), 6)))
+    y_pred = val_output.data.cpu().numpy().argmax(axis=1)
+    y_true = data.labels[data.valid_nodes]
+    acc = (y_pred == y_true).sum() / len(y_pred)
+    logging.info("Validation Macro F1:" +  str(np.round(f1_score(y_true, y_pred, average="macro"), 6)))
+    logging.info("Validation Micro F1:" +  str(np.round(f1_score(y_true, y_pred, average="micro"), 6)))
+    logging.info("Val acc:" + str(acc))
     logging.info("Average batch time:" + str(np.round(np.mean(times), 6)))
+    for name, param in sage.named_parameters():
+        print(name, param.shape)
